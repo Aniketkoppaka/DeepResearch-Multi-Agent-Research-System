@@ -5,15 +5,15 @@ services:
     image: postgres:16-alpine
     container_name: deepresearch-postgres
     environment:
-      POSTGRES_USER: 
-      POSTGRES_PASSWORD: 
-      POSTGRES_DB: 
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-deepresearch}
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ']
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,25 +22,25 @@ services:
     image: redis:7-alpine
     container_name: deepresearch-redis
     ports:
-      - '6379:6379'
+      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   qdrant:
-    image: qdrant/qdrant:v1.9.0
-    container_name: deepresearch-qdrant
+    image: qdrant/qudrant:v1.9.0
+    container_name: deepresearch-qudrant
     ports:
-      - '6333:6333'
-      - '6334:6334'
+      - "6333:6333"
+      - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ['CMD-SHELL', 'timeout 5s bash -c ''cat < /dev/null > /dev/tcp/localhost/6333'' || exit 1']
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/readyz"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -51,7 +51,7 @@ services:
       dockerfile: ../docker/Dockerfile.backend
     container_name: deepresearch-backend
     ports:
-      - '8000:8000'
+      - "8000:8000"
     environment:
       - ENVIRONMENT=development
       - DEBUG=true
@@ -72,24 +72,24 @@ services:
       qdrant:
         condition: service_healthy
     healthcheck:
-      test: ['CMD-SHELL', 'python -c ''import urllib.request; urllib.request.urlopen(" http://localhost:8000/healthz\)'' || exit 1']
- interval: 10s
- timeout: 5s
- retries: 5
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
- frontend:
- build:
- context: ./frontend
- dockerfile: ../docker/Dockerfile.frontend
- container_name: deepresearch-frontend
- ports:
- - '3000:3000'
- environment:
- - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
- depends_on:
- - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
+    container_name: deepresearch-frontend
+    ports:
+      - "3003:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      - backend
 
 volumes:
- postgres_data:
- redis_data:
- qdrant_data:
+  postgres_data:
+  redis_data:
+  qdrant_data:

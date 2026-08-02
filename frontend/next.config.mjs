@@ -1,1 +1,7 @@
-/** @type {ineÁ½ÉĞ ¹•áĞœ¤¹9•áÑ½¹™¥ô€¨¼)½¹ÍĞ¹•áÑ½¹™¥œ€ôì(€½ÕÑÁÕĞè€ÍÑ…¹‘…±½¹”œ°(€É•…ÑMÑÉ¥Ñ5½‘”èÑÉÕ”°)ôì()•áÁ½ÉĞ‘•™…Õ±Ğ¹•áÑ½¹™¥œì(
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'standalone',
+  reactStrictMode: true,
+};
+
+export default nextConfig;
