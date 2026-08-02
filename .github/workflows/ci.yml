@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  backend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4
+      - name: Set up Pathon
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      - name: Run Ruff Linter
+        run: |
+          cd backend
+          ruff check .
+      - name: Run Mypy Type Checker
+        run: |
+          cd backend
+          mypy app
+      - name: Run Pytest
+        run: |
+          cd backend
+          pytest
+
+  frontend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm ci
+      - name: Run TypeCheck
+        run: |
+          cd frontend
+          npx tsc --noEmit
+      - name: Run Vitest
+        run: |
+          cd frontend
+          npm run test

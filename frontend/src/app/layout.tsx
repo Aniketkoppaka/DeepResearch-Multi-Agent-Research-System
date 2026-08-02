@@ -1,0 +1,20 @@
+import "app/globals.css";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "DeepResearch - Multi-Agent AI Research Platform",
+  description: "Enterprise-grade multi-agent AI research workspace",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+layout?: str;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
