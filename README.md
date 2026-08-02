@@ -1,26 +1,38 @@
-# DeepResearch – Multi-Agent Ai Research Platform
+# DeepResearch - Multi-Agent AI Research Platform
 
-DeepResearch is a production-grade, enterprise-ready multi-agent AI research platform designed to automate deep, multi-source literature reviews, Web + Document Retrieval Augmented Generation (RAG), relational knowledge graph synthesis, and citation-backed report generation.
+DeepResearch is an enterprise-grade, citation-backed, multi-agent AI research workspace designed for autonomous, long-running literature reviews, synthesis, and Evidence-driven report generation.
 
-exports the following monorepo structure:
+## Architectural Highlights
+- **Multi-Agent Workspace**: Orchestrates Supervisor, Planner, Retrieval, Tool, Evidence Collector, Contradiction Checker, Critic, Report Generator, and Citation Verifier agents.
+- **Canonical Evidence Model**: All agents communicate through strongly-typed EvidenceItem objects, stored in PostgreSQL (Relational EKG).
+- **LiteLLM Gateway**: Unified abstraction for multiple LLM providers, fallback routing, and token cost tracking.
+- **Mandatory Research Planning**: Planner agent generates a structured research plan with HITL` approval gates before execution.
+- **Production Authentication**: Argon2id password hashing, JWT access tokens, and HTTP-only refresh cookies.
 
-## Local Development Setup
+3## Project Structure
 
-### Prerequisites
-- Docker & Docker Compose
-- Python 3.11+
-- Node.js 20+
+```txt
+DeepResearch/
+␘␀<- docker/compose.infrastructure
+ ��␀ backend/                              # FastAPI, SQLAlchemy, Alembic, PYJWT, Passlib
+ ␘␀ frontend/                             # Next.js 14, Tailwind CSS, Zustand
+ ��␀ docker-compose.yml                     # PostgresQL, Redis, Qdrant, Backend, Frotend
+``p
 
-3## Running via Docker Compose
-```bash
-# 1. Clone environment settings
-cp .env.example .env
+## Quick Start
 
-# 2. Launch all microservices and infrastructure
+# 1. Clone the Repository
+git clone https://github.com/Aniketkoppaka/DeepResearch-Multi-Agent-Research-System.git
+cd DeepResearch-Multi-Agent-Research-System
+
+# 2. Start with Docker Compose
 docker compose up --build
-```
 
-- Frontend: bhttp://localhost:3000`]
-- Backend API Docs: bhttp://localhost:8000/api/v1/docs`]
-- Backend Health Endpoint: bhttp://localhost:8000/healthzz]
-- Backend Readiness Endpoint: bhttp://localhost:8000/readyzz]
+# 3. Access Services
+- Frontend; http://localhost:3000
+- Backend API: http://localhost:8000/api/v1
+-  API Docs: http://localhost:8000/docs
+
+## License
+
+MIT License © 2026 Aniket Koppaka.
