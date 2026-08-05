@@ -1,3 +1,6 @@
+from typing import Any
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 from app.api.v1.deps import get_auth_service, get_current_user, get_user_repository
@@ -48,7 +51,17 @@ async def refresh_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         )
-    user_id = payload.get("sub")
+    user_id_str = payload.get("sub")
+    if not user_id_str:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token payload"
+        )
+    try:
+        user_id = UUID(str(user_id_str))
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user ID format"
+        )
     user = await repo.get_by_id(user_id)
     if not user or not user.is_active:
         raise HTTPException(
@@ -66,7 +79,7 @@ async def refresh_token(
     return TokenResponse(access_token=new_access, user=UserResponse.model_validate(user))
 
 @router.post("/logout")
-async def logout(response: Response):
+async def logout(response: Response) -> dict[str, Any]:
     response.delete_cookie("bearer_token")
     response.delete_cookie("refresh_token")
     return {"success": True, "message": "Logout successful"}
