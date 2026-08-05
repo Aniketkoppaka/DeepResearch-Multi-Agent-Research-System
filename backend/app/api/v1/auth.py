@@ -40,14 +40,20 @@ async def refresh_token(
 ) -> TokenResponse:
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
-        raise HTTPException(status_code=status.HTTP_401_UNFAUTHORIZED, detail="Refresh token missing")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token missing"
+        )
     payload = decode_token(refresh_token)
     if not payload or payload.get("type") != "refresh":
-        raise HTTPException(status_code=status.HTTP_401_UNFAUTHORIZED, detail="Invalid refresh token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+        )
     user_id = payload.get("sub")
     user = await repo.get_by_id(user_id)
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNFAUTHORIZED, detail="User not found or inactive")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive"
+        )
     new_access = create_access_token(data={"sub": str(user.id)})
     new_refresh = create_refresh_token(data={"sub": str(user.id)})
     response.set_cookie(
