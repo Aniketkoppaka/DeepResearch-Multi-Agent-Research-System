@@ -10,7 +10,7 @@ jobs:
   backend-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4
+      - uses: actions/checkout@v4
       - name: Set up Pathon
         uses: actions/setup-python@v5
         with:
@@ -35,7 +35,7 @@ jobs:
   frontend-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4
+      - uses: actions/checkout@v4
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
