@@ -46,7 +46,9 @@ logger = logging.getLogger(__name__)
 def _configure_litellm() -> None:
     """Apply global LiteLLM settings from application config."""
     litellm.drop_params = True  # Ignore unsupported provider params silently
-    litellm.set_verbose = False  # Not in public API; suppress provider debug output
+    litellm.suppress_debug_info = True  # Silence provider debug output
+
+
 
     # Inject provider API keys — all sourced from environment, never hardcoded
     if settings.OPENAI_API_KEY:
