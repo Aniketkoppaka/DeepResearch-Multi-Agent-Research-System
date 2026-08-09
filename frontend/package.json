@@ -19,12 +19,15 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
     "@testing-library/react": "15.0.7",
     "@types/node": "20.12.12",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.1",
     "@vitest/coverage-v8": "1.6.0",
     "autoprefixer": "10.4.19",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.3",
     "jsdom": "24.0.0",
     "postcss": "8.4.38",
     "tailwindcss": "3.4.3",

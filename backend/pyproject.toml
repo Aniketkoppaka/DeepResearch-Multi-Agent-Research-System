@@ -6,8 +6,11 @@ target-version = "py311"
 select = ["E", "F", "I", "W", "B"]
 ignore = ["E402", "B008", "B904", "I001"]
 
-
-
+[tool.ruff.lint.per-file-ignores]
+# Allow long lines in tests — they often have long fixture URLs and assertion messages
+"tests/**" = ["E501"]
+# Allow long lines in alembic migrations — SQL column definitions are frequently wide
+"alembic/**" = ["E501"]
 
 [tool.mypy]
 python_version = "3.11"
