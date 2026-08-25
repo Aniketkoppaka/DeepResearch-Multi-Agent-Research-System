@@ -27,7 +27,14 @@ export default function LoginPage() {
         throw new Error(data.detail || "Login failed");
       }
       setAuth(data.user, data.access_token);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("access_token", data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem("refresh_token", data.refresh_token);
+        }
+      }
       router.push("/dashboard");
+
     } catch (err: any) {
       setError(err.message);
     } finally {
