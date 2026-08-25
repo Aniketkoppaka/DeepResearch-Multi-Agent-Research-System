@@ -39,8 +39,12 @@ class TxtLoader(BaseLoader):
         if not text and raw_bytes:
             text = raw_bytes.decode("latin-1", errors="replace")
 
+        # Normalize line endings
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
+
         elements: List[ExtractedElement] = []
         paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+
         for para in paragraphs:
             elements.append(
                 ExtractedElement(

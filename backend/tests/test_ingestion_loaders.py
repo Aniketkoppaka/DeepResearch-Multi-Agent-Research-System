@@ -25,9 +25,10 @@ async def test_txt_loader_success():
         doc = await loader.load(temp_path, "text/plain")
         assert doc.mime_type == "text/plain"
         assert "test paragraph" in doc.raw_text
-        assert len(doc.elements) == 1
+        assert len(doc.elements) == 2
     finally:
         os.remove(temp_path)
+
 
 
 @pytest.mark.asyncio

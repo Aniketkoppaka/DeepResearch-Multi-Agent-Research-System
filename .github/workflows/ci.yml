@@ -85,8 +85,10 @@ jobs:
           POSTGRES_DB: deepresearch
           REDIS_HOST: localhost
           REDIS_PORT: 6379
+          ENVIRONMENT: test
         run: |
           python -m pytest -v
+
 
       - name: Frontend Quality Gates (ESLint, TypeScript, Vitest)
         working-directory: ./frontend

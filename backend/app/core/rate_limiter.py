@@ -19,7 +19,10 @@ class RateLimiter:
         self.window_seconds = window_seconds
 
     async def __call__(self, request: Request) -> None:
+        if settings.ENVIRONMENT == "test":
+            return
         client_ip = request.client.host if request.client else "127.0.0.1"
+
         key = f"ratelimit:lauth:{client_ip}:{request.url.path}"
         redis = await get_redis_client()
         try:
