@@ -13,6 +13,7 @@ from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.evidence_repository import EvidenceRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
+from app.repositories.report_repository import ReportRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.services.agents.execution_loop import ResearchExecutionLoop
@@ -20,10 +21,12 @@ from app.services.agents.fact_extractor import FactExtractorAgent
 from app.services.agents.planner import PlannerAgent
 from app.services.agents.search_agent import SearchAgent
 from app.services.agents.supervisor import SupervisorService
+from app.services.agents.synthesizer import SynthesizerAgent
 from app.services.auth_service import AuthService
 from app.services.document_service import DocumentService
 from app.services.evidence.evidence_service import EvidenceService
 from app.services.ingestion_service import IngestionService
+from app.services.reports.report_service import ReportService
 from app.services.retrieval.hybrid_search import HybridSearchService
 from app.services.retrieval.vector_store import VectorStoreService
 from app.services.web_search.search_service import WebSearchEngine
@@ -66,6 +69,12 @@ async def get_evidence_repository(
     session: AsyncSession = Depends(get_db_session),
 ) -> EvidenceRepository:
     return EvidenceRepository(session)
+
+
+async def get_report_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> ReportRepository:
+    return ReportRepository(session)
 
 
 async def get_vector_store_service() -> VectorStoreService:
@@ -139,6 +148,12 @@ async def get_fact_extractor_agent(
     return FactExtractorAgent(llm_gateway)
 
 
+async def get_synthesizer_agent(
+    llm_gateway: LiteLLMGateway = Depends(get_litellm_gateway),
+) -> SynthesizerAgent:
+    return SynthesizerAgent(llm_gateway)
+
+
 async def get_search_agent(
     hybrid_search: HybridSearchService = Depends(get_hybrid_search_service),
     web_search: WebSearchEngine = Depends(get_web_search_engine),
@@ -169,6 +184,20 @@ async def get_execution_loop(
         evidence_repo=evidence_repo,
         search_agent=search_agent,
         fact_extractor=fact_extractor,
+    )
+
+
+async def get_report_service(
+    report_repo: ReportRepository = Depends(get_report_repository),
+    workspace_repo: WorkspaceRepository = Depends(get_workspace_repository),
+    evidence_repo: EvidenceRepository = Depends(get_evidence_repository),
+    synthesizer: SynthesizerAgent = Depends(get_synthesizer_agent),
+) -> ReportService:
+    return ReportService(
+        report_repo=report_repo,
+        workspace_repo=workspace_repo,
+        evidence_repo=evidence_repo,
+        synthesizer=synthesizer,
     )
 
 
