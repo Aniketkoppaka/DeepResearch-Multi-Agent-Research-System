@@ -302,18 +302,16 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto px-4 py-8">
           <div className="mx-auto max-w-3xl space-y-6">
             {phase === "empty" && (
-              <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400 mb-2">
-                  <Sparkles className="size-6" />
-                </div>
-                <h1 className="text-2xl font-semibold tracking-tight text-white">
+              <div className="flex min-h-[55vh] flex-col items-center justify-center text-center pt-8">
+                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white max-w-xl leading-tight">
                   What topic would you like to deeply research today?
                 </h1>
-                <p className="mt-2 max-w-md text-sm text-neutral-400">
+                <p className="mt-3 max-w-lg text-sm text-neutral-400 leading-relaxed">
                   Autonomous multi-agent research: supervisor planning, hybrid vector RAG retrieval, fact extraction, and citation-backed synthesis.
                 </p>
               </div>
             )}
+
 
             {phase !== "empty" && prompt && (
               <div className="flex justify-end">

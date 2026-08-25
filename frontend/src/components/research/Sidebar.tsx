@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import {
-
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -13,6 +12,7 @@ import {
   Search,
   GraduationCap,
   Sparkles,
+  PanelLeft,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -79,32 +79,35 @@ export function Sidebar({
         {/* Header */}
         <div className="flex items-center justify-between px-1 py-1">
           {open ? (
-            <button
-              onClick={onNew}
-              className="flex items-center gap-2 text-sm font-semibold text-white transition-opacity hover:opacity-80"
-            >
-              <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
-                <Sparkles className="size-4" />
-              </div>
-              <span>DeepResearch</span>
-            </button>
+            <>
+              <button
+                onClick={onNew}
+                className="flex items-center gap-2 text-sm font-semibold text-white transition-opacity hover:opacity-80 cursor-pointer"
+              >
+                <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
+                  <Sparkles className="size-4" />
+                </div>
+                <span>DeepResearch</span>
+              </button>
+              <button
+                onClick={onToggle}
+                aria-label="Collapse sidebar"
+                className="flex size-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white cursor-pointer"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+            </>
           ) : (
+            /* When collapsed: Shows app icon normally, switches to expand toggle on hover */
             <button
-              onClick={onNew}
-              title="DeepResearch"
-              className="mx-auto flex size-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400"
+              onClick={onToggle}
+              title="Expand sidebar"
+              className="group mx-auto flex size-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400 transition-all hover:bg-neutral-800 hover:text-white cursor-pointer relative"
             >
-              <Sparkles className="size-4" />
+              <Sparkles className="size-4 transition-transform group-hover:hidden" />
+              <PanelLeft className="size-4 hidden group-hover:block text-white" />
             </button>
           )}
-
-          <button
-            onClick={onToggle}
-            aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
-            className="flex size-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
-          >
-            {open ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}
-          </button>
         </div>
 
         {/* New Research Button */}
@@ -195,36 +198,55 @@ export function Sidebar({
 
         {!open && <div className="flex-1" />}
 
-        {/* User Account / Sign In section */}
+        {/* User Account / Profile section */}
         <div className="mt-auto border-t border-white/10 pt-2">
           {user ? (
             open ? (
-              <div className="flex items-center justify-between rounded-xl px-2 py-2 text-xs hover:bg-neutral-800/60">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex size-7 items-center justify-center rounded-full bg-emerald-600 font-semibold text-white">
-                    {user.full_name ? user.full_name[0].toUpperCase() : user.email[0].toUpperCase()}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-xs hover:bg-neutral-800/60 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex size-7 items-center justify-center rounded-full bg-emerald-600 font-semibold text-white">
+                        {user.full_name ? user.full_name[0].toUpperCase() : user.email[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <p className="truncate font-medium text-white">{user.full_name || "User"}</p>
+                        <p className="truncate text-[11px] text-neutral-400">{user.email}</p>
+                      </div>
+                    </div>
+                    <MoreHorizontal className="size-3.5 text-neutral-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44 mb-1">
+                  <div className="px-2 py-1.5 text-xs text-neutral-400 border-b border-white/5">
+                    Signed in as <span className="text-white font-medium">{user.email}</span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-white">{user.full_name || "User"}</p>
-                    <p className="truncate text-[11px] text-neutral-400">{user.email}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={onLogout}
-                  title="Log out"
-                  className="rounded p-1 text-neutral-400 hover:bg-neutral-700 hover:text-white"
-                >
-                  <LogOut className="size-3.5" />
-                </button>
-              </div>
+                  <DropdownMenuItem onClick={onLogout} className="text-red-400 focus:text-red-400 mt-1 cursor-pointer">
+                    <LogOut className="mr-2 size-3.5" />
+                    <span>Log Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <button
-                onClick={onLogout}
-                title={`Signed in as ${user.email} (Click to log out)`}
-                className="mx-auto flex size-8 items-center justify-center rounded-full bg-emerald-600 font-semibold text-white"
-              >
-                {user.full_name ? user.full_name[0].toUpperCase() : user.email[0].toUpperCase()}
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    title={`Signed in as ${user.email}`}
+                    className="mx-auto flex size-8 items-center justify-center rounded-full bg-emerald-600 font-semibold text-white hover:opacity-90 cursor-pointer"
+                  >
+                    {user.full_name ? user.full_name[0].toUpperCase() : user.email[0].toUpperCase()}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" side="right" className="w-44 ml-2 mb-1">
+                  <div className="px-2 py-1.5 text-xs text-neutral-400 border-b border-white/5">
+                    Signed in as <span className="text-white font-medium">{user.email}</span>
+                  </div>
+                  <DropdownMenuItem onClick={onLogout} className="text-red-400 focus:text-red-400 mt-1 cursor-pointer">
+                    <LogOut className="mr-2 size-3.5" />
+                    <span>Log Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )
           ) : open ? (
             <button
