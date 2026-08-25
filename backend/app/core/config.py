@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     LITELLM_MAX_RETRIES: int = 3
     LITELLM_ENABLE_COST_TRACKING: bool = True
 
+    # Ingestion & Semantic Chunking Configuration
+    CHUNK_TARGET_SIZE: int = 1000  # Target characters per chunk
+    CHUNK_MAX_SIZE: int = 1500  # Max hard boundary characters per chunk
+    CHUNK_OVERLAP: int = 150  # Overlap characters for sliding window fallback
+
+
     @property
     def REDIS_URI(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"

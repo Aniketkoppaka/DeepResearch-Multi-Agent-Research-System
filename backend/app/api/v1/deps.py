@@ -1,19 +1,22 @@
 from typing import Optional
+from uuid import UUID
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from uuid import UUID
 
-from app.db.session import get_db_session
-from app.repositories.user_repository import UserRepository
-from app.repositories.refresh_token_repository import RefreshTokenRepository
-from app.repositories.workspace_repository import WorkspaceRepository
-from app.repositories.document_repository import DocumentRepository
-from app.services.auth_service import AuthService
-from app.services.workspace_service import WorkspaceService
-from app.services.document_service import DocumentService
 from app.core.security import decode_token
 from app.db.models.user import User
+from app.db.session import get_db_session
+from app.repositories.document_chunk_repository import DocumentChunkRepository
+from app.repositories.document_repository import DocumentRepository
+from app.repositories.refresh_token_repository import RefreshTokenRepository
+from app.repositories.user_repository import UserRepository
+from app.repositories.workspace_repository import WorkspaceRepository
+from app.services.auth_service import AuthService
+from app.services.document_service import DocumentService
+from app.services.ingestion_service import IngestionService
+from app.services.workspace_service import WorkspaceService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
@@ -42,6 +45,12 @@ async def get_document_repository(
     return DocumentRepository(session)
 
 
+async def get_document_chunk_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> DocumentChunkRepository:
+    return DocumentChunkRepository(session)
+
+
 async def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repository),
     refresh_repo: RefreshTokenRepository = Depends(get_refresh_token_repository),
@@ -62,8 +71,14 @@ async def get_document_service(
     return DocumentService(document_repo, workspace_repo)
 
 
-async def get_current_user(
+async def get_ingestion_service(
+    document_repo: DocumentRepository = Depends(get_document_repository),
+    chunk_repo: DocumentChunkRepository = Depends(get_document_chunk_repository),
+) -> IngestionService:
+    return IngestionService(document_repo, chunk_repo)
 
+
+async def get_current_user(
     token: Optional[str] = Depends(oauth2_scheme),
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> User:
