@@ -432,8 +432,9 @@ class LiteLLMGateway:
                 last_error = exc
                 if attempts > self.max_retries:
                     raise GatewayTimeoutError(
-                        f"Embedding call to {model} timed out"
+                        self.timeout_seconds, cause=exc
                     ) from exc
+
                 backoff = (2 ** (attempts - 1))
                 await asyncio.sleep(backoff)
             except AuthenticationError as exc:

@@ -6,7 +6,8 @@ Executes parallel dense and sparse searches and fuses ranks with configured weig
 import asyncio
 import logging
 import uuid
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
 
 from app.core.config import settings
 from app.core.llm_gateway import LiteLLMGateway
@@ -99,8 +100,8 @@ class HybridSearchService:
 
     def _reciprocal_rank_fusion(
         self,
-        dense_points: list,
-        sparse_points: list,
+        dense_points: List[Any],
+        sparse_points: List[Any],
         limit: int = 10,
     ) -> List[SearchResultItem]:
         """
@@ -108,7 +109,8 @@ class HybridSearchService:
         Score(d) = dense_weight * (1 / (K + rank_dense)) + sparse_weight * (1 / (K + rank_sparse))
         """
         scores: Dict[str, float] = {}
-        payload_map: Dict[str, dict] = {}
+        payload_map: Dict[str, Dict[str, Any]] = {}
+
 
         # Process dense ranks
         for rank, pt in enumerate(dense_points, start=1):

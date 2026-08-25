@@ -20,8 +20,9 @@ logger = logging.getLogger(__name__)
 class VectorStoreService:
     def __init__(self, client: Optional[AsyncQdrantClient] = None) -> None:
         self.client = client or AsyncQdrantClient(
-            url=settings.QDRANT_URL, timeout=30.0
+            url=settings.QDRANT_URL, timeout=30
         )
+
         self.collection_name = settings.QDRANT_COLLECTION_NAME
 
     async def ensure_collection_exists(self) -> None:
