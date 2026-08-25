@@ -15,7 +15,10 @@ from app.repositories.evidence_repository import EvidenceRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.workspace_repository import WorkspaceRepository
+from app.services.agents.execution_loop import ResearchExecutionLoop
+from app.services.agents.fact_extractor import FactExtractorAgent
 from app.services.agents.planner import PlannerAgent
+from app.services.agents.search_agent import SearchAgent
 from app.services.agents.supervisor import SupervisorService
 from app.services.auth_service import AuthService
 from app.services.document_service import DocumentService
@@ -23,6 +26,7 @@ from app.services.evidence.evidence_service import EvidenceService
 from app.services.ingestion_service import IngestionService
 from app.services.retrieval.hybrid_search import HybridSearchService
 from app.services.retrieval.vector_store import VectorStoreService
+from app.services.web_search.search_service import WebSearchEngine
 from app.services.workspace_service import WorkspaceService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
@@ -66,6 +70,10 @@ async def get_evidence_repository(
 
 async def get_vector_store_service() -> VectorStoreService:
     return VectorStoreService()
+
+
+async def get_web_search_engine() -> WebSearchEngine:
+    return WebSearchEngine()
 
 
 async def get_hybrid_search_service(
@@ -125,11 +133,43 @@ async def get_planner_agent(
     return PlannerAgent(llm_gateway)
 
 
+async def get_fact_extractor_agent(
+    llm_gateway: LiteLLMGateway = Depends(get_litellm_gateway),
+) -> FactExtractorAgent:
+    return FactExtractorAgent(llm_gateway)
+
+
+async def get_search_agent(
+    hybrid_search: HybridSearchService = Depends(get_hybrid_search_service),
+    web_search: WebSearchEngine = Depends(get_web_search_engine),
+    llm_gateway: LiteLLMGateway = Depends(get_litellm_gateway),
+) -> SearchAgent:
+    return SearchAgent(
+        hybrid_search=hybrid_search,
+        web_search=web_search,
+        llm_gateway=llm_gateway,
+    )
+
+
 async def get_supervisor_service(
     workspace_repo: WorkspaceRepository = Depends(get_workspace_repository),
     planner_agent: PlannerAgent = Depends(get_planner_agent),
 ) -> SupervisorService:
     return SupervisorService(workspace_repo, planner_agent)
+
+
+async def get_execution_loop(
+    workspace_repo: WorkspaceRepository = Depends(get_workspace_repository),
+    evidence_repo: EvidenceRepository = Depends(get_evidence_repository),
+    search_agent: SearchAgent = Depends(get_search_agent),
+    fact_extractor: FactExtractorAgent = Depends(get_fact_extractor_agent),
+) -> ResearchExecutionLoop:
+    return ResearchExecutionLoop(
+        workspace_repo=workspace_repo,
+        evidence_repo=evidence_repo,
+        search_agent=search_agent,
+        fact_extractor=fact_extractor,
+    )
 
 
 async def get_current_user(
