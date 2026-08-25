@@ -1,8 +1,8 @@
 import enum
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 import uuid
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List, Optional
-from sqlalchemy import Enum, ForeignKey, String, Text, DateTime, UUID as SQLUUID
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, String, Text, UUID as SQLUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.models.user import Base, User
 
@@ -19,6 +19,13 @@ class ResearchMode(str, enum.Enum):
 class WorkspaceStatus(str, enum.Enum):
     ACTIVE = "active"
     ARCHIVED = "archived"
+
+
+class PlanStatus(str, enum.Enum):
+    DRAFT = "draft"
+    PENDING_APPROVAL = "pending_approval"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
 
 class Workspace(Base):
@@ -44,6 +51,17 @@ class Workspace(Base):
         Enum(WorkspaceStatus, native_enum=False),
         default=WorkspaceStatus.ACTIVE,
         nullable=False,
+    )
+    plan_status: Mapped[PlanStatus] = mapped_column(
+        Enum(PlanStatus, native_enum=False),
+        default=PlanStatus.DRAFT,
+        nullable=False,
+    )
+    research_plan: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON, nullable=True
+    )
+    execution_state: Mapped[Dict[str, Any]] = mapped_column(
+        JSON, server_default="{}", nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

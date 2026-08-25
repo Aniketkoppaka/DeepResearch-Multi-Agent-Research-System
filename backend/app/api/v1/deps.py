@@ -15,6 +15,8 @@ from app.repositories.evidence_repository import EvidenceRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.workspace_repository import WorkspaceRepository
+from app.services.agents.planner import PlannerAgent
+from app.services.agents.supervisor import SupervisorService
 from app.services.auth_service import AuthService
 from app.services.document_service import DocumentService
 from app.services.evidence.evidence_service import EvidenceService
@@ -115,6 +117,19 @@ async def get_evidence_service(
         evidence_repo=evidence_repo,
         workspace_repo=workspace_repo,
     )
+
+
+async def get_planner_agent(
+    llm_gateway: LiteLLMGateway = Depends(get_litellm_gateway),
+) -> PlannerAgent:
+    return PlannerAgent(llm_gateway)
+
+
+async def get_supervisor_service(
+    workspace_repo: WorkspaceRepository = Depends(get_workspace_repository),
+    planner_agent: PlannerAgent = Depends(get_planner_agent),
+) -> SupervisorService:
+    return SupervisorService(workspace_repo, planner_agent)
 
 
 async def get_current_user(
