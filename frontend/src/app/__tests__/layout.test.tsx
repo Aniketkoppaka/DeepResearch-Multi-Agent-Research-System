@@ -14,6 +14,7 @@ vi.mock("next/navigation", () => ({
 describe("Root HomePage", () => {
   it("renders heading", () => {
     render(<HomePage />);
-    expect(screen.getByText("DeepResearch")).toBeDefined();
+    expect(screen.getByText("Kairo")).toBeDefined();
   });
 });
+

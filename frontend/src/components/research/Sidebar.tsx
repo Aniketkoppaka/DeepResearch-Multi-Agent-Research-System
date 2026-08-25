@@ -82,12 +82,15 @@ export function Sidebar({
             <>
               <button
                 onClick={onNew}
-                className="flex items-center gap-2 text-sm font-semibold text-white transition-opacity hover:opacity-80 cursor-pointer"
+                className="flex items-center gap-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-80 cursor-pointer"
               >
-                <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
-                  <Sparkles className="size-4" />
-                </div>
-                <span>DeepResearch</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/kairo-icon.png"
+                  alt="Kairo Logo"
+                  className="size-7 object-contain drop-shadow"
+                />
+                <span className="text-base tracking-tight font-bold">Kairo</span>
               </button>
               <button
                 onClick={onToggle}
@@ -98,17 +101,23 @@ export function Sidebar({
               </button>
             </>
           ) : (
-            /* When collapsed: Shows app icon normally, switches to expand toggle on hover */
+            /* When collapsed: Shows Kairo app icon, switches to expand toggle on hover */
             <button
               onClick={onToggle}
               title="Expand sidebar"
-              className="group mx-auto flex size-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400 transition-all hover:bg-neutral-800 hover:text-white cursor-pointer relative"
+              className="group mx-auto flex size-8 items-center justify-center rounded-lg p-0.5 transition-all hover:bg-neutral-800 cursor-pointer relative"
             >
-              <Sparkles className="size-4 transition-transform group-hover:hidden" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/kairo-icon.png"
+                alt="Kairo"
+                className="size-6 object-contain transition-transform group-hover:hidden"
+              />
               <PanelLeft className="size-4 hidden group-hover:block text-white" />
             </button>
           )}
         </div>
+
 
         {/* New Research Button */}
         <div className="mt-3">

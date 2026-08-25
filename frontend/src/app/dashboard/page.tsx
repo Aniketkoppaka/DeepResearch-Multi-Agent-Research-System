@@ -313,6 +313,7 @@ export default function DashboardPage() {
             )}
 
 
+
             {phase !== "empty" && prompt && (
               <div className="flex justify-end">
                 <div className="max-w-[85%] rounded-2xl bg-[#2f2f2f] px-4 py-3 text-sm text-white border border-white/5 shadow-md">
@@ -383,12 +384,12 @@ export default function DashboardPage() {
               onModeChange={(newMode) => setMode(newMode)}
               placeholder={
                 phase === "empty"
-                  ? "Ask DeepResearch to explore any technical, scientific, or market topic…"
+                  ? "Ask Kairo to explore any technical, scientific, or market topic…"
                   : "Ask a follow-up or refine the research direction…"
               }
             />
             <p className="mt-2 text-center text-[11px] text-neutral-500">
-              DeepResearch Grounding Engine · Grounded in verified evidence &amp; knowledge graph nodes.
+              Kairo Autonomous Grounding Engine · Grounded in verified evidence &amp; knowledge graph nodes.
             </p>
           </div>
         </div>
@@ -402,14 +403,18 @@ export default function DashboardPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="w-full max-w-md bg-[#1f1f1f] border border-white/10 rounded-2xl p-6 shadow-2xl">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
-                  <Lock className="size-4" />
-                </div>
+              <div className="flex items-center gap-2.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/kairo-icon.png"
+                  alt="Kairo"
+                  className="size-6 object-contain"
+                />
                 <h2 className="text-base font-semibold text-white">
-                  {authMode === "login" ? "Sign In to DeepResearch" : "Create an Account"}
+                  {authMode === "login" ? "Sign In to Kairo" : "Create a Kairo Account"}
                 </h2>
               </div>
+
               <button
                 onClick={() => setShowAuthModal(false)}
                 className="text-neutral-400 hover:text-white text-sm"
