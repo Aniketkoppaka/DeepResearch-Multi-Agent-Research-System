@@ -1,142 +1,252 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import WorkspaceModal from "@/components/workspace/WorkspaceModal";
+import { useEffect, useRef, useState } from "react";
+import { Telescope } from "lucide-react";
+import { Sidebar } from "@/components/research/Sidebar";
+import { Composer } from "@/components/research/Composer";
+import { ReasoningAccordion } from "@/components/research/ReasoningAccordion";
+import { PlanReviewCard } from "@/components/research/PlanReviewCard";
+import { ReportCard } from "@/components/research/ReportCard";
+import { SidePanel, type PanelState } from "@/components/research/SidePanel";
+import { researchApi } from "@/lib/research-api";
+import {
+  CITATIONS,
+  METRICS,
+  MODES,
+  PLAN,
+  REPORT,
+  SESSIONS,
+  STEPS,
+  type ResearchMode,
+  type Session,
+} from "@/lib/research-data";
 
-interface Workspace {
-  id: string;
-  title: string;
-  description?: string;
-  research_mode: "Quick" | "Deep" | "Academic";
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
+type Phase = "empty" | "reasoning" | "plan" | "executing" | "report";
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-
-  const fetchWorkspaces = async (authToken: string) => {
-    try {
-      const res = await fetch("http://localhost:8000/api/v1/workspaces", {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to load workspaces");
-      }
-
-      const data = await res.json();
-      setWorkspaces(data);
-    } catch (err: any) {
-      setError(err.message || "Error fetching workspaces");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sessions, setSessions] = useState<Session[]>(SESSIONS);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [mode, setMode] = useState<ResearchMode>("deep");
+  const [phase, setPhase] = useState<Phase>("empty");
+  const [prompt, setPrompt] = useState("");
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [step, setStep] = useState(0);
+  const [decision, setDecision] = useState<"approved" | "refine" | null>(null);
+  const [panel, setPanel] = useState<PanelState>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("access_token");
-    if (!storedToken) {
-      router.push("/login");
-      return;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [phase, step, decision]);
+
+  const runSteps = (from: number, to: number, then: () => void) => {
+    let i = from;
+    setStep(i);
+    const tick = setInterval(() => {
+      i += 1;
+      setStep(i);
+      if (i >= to) {
+        clearInterval(tick);
+        then();
+      }
+    }, 1100);
+  };
+
+  const startResearch = async (text: string, files: string[]) => {
+    setPrompt(text);
+    setAttachments(files);
+    setDecision(null);
+    setPhase("reasoning");
+    const ws = activeId
+      ? sessions.find((s) => s.id === activeId)!
+      : await researchApi.createWorkspace(text.slice(0, 48), mode);
+    if (!activeId) {
+      setSessions((p) => [ws, ...p]);
+      setActiveId(ws.id);
     }
-    setToken(storedToken);
-    fetchWorkspaces(storedToken);
-  }, [router]);
+    void researchApi.generatePlan(ws.id, text);
+    runSteps(0, 2, () => setPhase("plan"));
+  };
+
+  const approve = async () => {
+    setDecision("approved");
+    setPhase("executing");
+    if (activeId) {
+      void researchApi.reviewPlan(activeId, true);
+      void researchApi.execute(activeId);
+    }
+    runSteps(2, 4, () => setPhase("report"));
+  };
+
+  const refine = async (feedback: string) => {
+    setDecision("refine");
+    setPhase("reasoning");
+    if (activeId) void researchApi.reviewPlan(activeId, false, feedback);
+    runSteps(0, 2, () => {
+      setDecision(null);
+      setPhase("plan");
+    });
+  };
+
+  const selectSession = (id: string) => {
+    setActiveId(id);
+    const s = sessions.find((x) => x.id === id);
+    if (!s) return;
+    setMode(s.mode);
+    setPrompt(s.title);
+    setDecision("approved");
+    setStep(4);
+    setPhase("report");
+  };
+
+  const newSession = () => {
+    setActiveId(null);
+    setPhase("empty");
+    setPrompt("");
+    setAttachments([]);
+    setDecision(null);
+    setPanel(null);
+  };
+
+  const renameSession = (id: string) => {
+    const next = window.prompt("Rename research session:");
+    if (!next?.trim()) return;
+    setSessions((p) => p.map((s) => (s.id === id ? { ...s, title: next.trim() } : s)));
+  };
+
+  const deleteSession = (id: string) => {
+    setSessions((p) => p.filter((s) => s.id !== id));
+    if (activeId === id) newSession();
+  };
+
+  const openCitation = (id: number) => {
+    const c = CITATIONS.find((x) => x.id === id) ?? CITATIONS[0];
+    setPanel({ kind: "citation", citation: c });
+  };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
-      <header className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold">Research Workspaces</h1>
-          <p className="text-sm text-slate-400">Manage and orchestrate deep research sessions</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20"
-          >
-            + Create Workspace
-          </button>
-          <Link href="/" className="text-sm text-slate-400 hover:text-white">
-            Home
-          </Link>
-        </div>
-      </header>
+    <div className="flex h-screen w-screen overflow-hidden bg-[#171717] text-[#ececec]">
+      <Sidebar
+        open={sidebarOpen}
+        onToggle={() => setSidebarOpen((o) => !o)}
+        sessions={sessions}
+        activeId={activeId}
+        onSelect={selectSession}
+        onNew={newSession}
+        onRename={renameSession}
+        onDelete={deleteSession}
+      />
 
-      {error && (
-        <div className="mb-6 rounded bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400">
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 rounded-lg bg-slate-800/50 animate-pulse border border-slate-800" />
-          ))}
-        </div>
-      ) : workspaces.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-800 p-12 text-center bg-slate-800/20">
-          <h3 className="text-lg font-semibold text-slate-300 mb-2">No Workspaces Found</h3>
-          <p className="text-sm text-slate-500 mb-6">
-            Get started by creating your first deep research workspace.
-          </p>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500"
-          >
-            + Create Workspace
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {workspaces.map((ws) => (
-            <Link
-              key={ws.id}
-              href={`/workspace/${ws.id}`}
-              className="group p-6 bg-slate-800 hover:bg-slate-800/80 rounded-xl border border-slate-700 hover:border-indigo-500/50 transition-all duration-200 shadow-md flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex justify-between items-start mb-2">
-                  <h2 className="text-lg font-bold group-hover:text-indigo-400 transition-colors line-clamp-1">
-                    {ws.title}
-                  </h2>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-slate-700 font-medium text-slate-300 border border-slate-600">
-                    {ws.research_mode}
-                  </span>
+      <main className="relative flex min-w-0 flex-1 flex-col bg-[#212121]">
+        <div className="flex-1 overflow-y-auto px-4 py-8">
+          <div className="mx-auto max-w-3xl space-y-6">
+            {phase === "empty" && (
+              <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">
+                  <Telescope className="size-6" />
                 </div>
-                <p className="text-slate-400 text-sm mb-4 line-clamp-2">
-                  {ws.description || "No description provided."}
+                <h1 className="mt-4 text-2xl font-semibold tracking-tight text-white">
+                  What topic would you like to deeply research today?
+                </h1>
+                <p className="mt-2 max-w-md text-sm text-neutral-400">
+                  Multi-agent research planner, autonomous dual-vector RAG search, fact extraction, and citation-backed synthesis.
                 </p>
-              </div>
-              <div className="text-xs text-slate-500 flex justify-between items-center pt-4 border-t border-slate-700/50">
-                <span>Status: <strong className="text-emerald-400">{ws.status}</strong></span>
-                <span>Created {new Date(ws.created_at).toLocaleDateString()}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
 
-      {token && (
-        <WorkspaceModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onCreated={() => fetchWorkspaces(token)}
-          token={token}
-        />
-      )}
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                  {MODES.map((m) => {
+                    const sel = m.id === mode;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => setMode(m.id)}
+                        className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                          sel
+                            ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
+                            : "border-white/10 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                        }`}
+                      >
+                        <span>{m.emoji}</span>
+                        <span>{m.label}</span>
+                        <span className="text-[11px] opacity-60">· {m.hint}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {phase !== "empty" && prompt && (
+              <div className="flex justify-end">
+                <div className="max-w-[85%] rounded-3xl bg-[#2f2f2f] px-4 py-3 text-sm text-white">
+                  <p className="leading-relaxed">{prompt}</p>
+                  {attachments.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {attachments.map((f) => (
+                        <span
+                          key={f}
+                          className="rounded-full bg-neutral-900 px-2.5 py-0.5 text-[11px] text-neutral-300"
+                        >
+                          📎 {f}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(phase === "reasoning" ||
+              phase === "plan" ||
+              phase === "executing" ||
+              phase === "report") && (
+              <ReasoningAccordion steps={STEPS} activeIndex={step} done={phase === "report"} />
+            )}
+
+            {(phase === "plan" || phase === "executing" || phase === "report") && (
+              <PlanReviewCard
+                plan={PLAN}
+                decided={decision}
+                onApprove={approve}
+                onRefine={refine}
+              />
+            )}
+
+            {phase === "report" && (
+              <ReportCard
+                report={REPORT}
+                onCite={openCitation}
+                onCanvas={() => setPanel({ kind: "canvas", report: REPORT })}
+                onExport={(fmt) => {
+                  window.open(researchApi.exportUrl(activeId ?? "demo", fmt), "_blank");
+                }}
+                onMetrics={() => setPanel({ kind: "metrics", metrics: METRICS })}
+              />
+            )}
+
+            <div ref={bottomRef} />
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 bg-gradient-to-t from-[#212121] via-[#212121] to-transparent p-4">
+          <div className="mx-auto max-w-3xl">
+            <Composer
+              onSend={startResearch}
+              disabled={phase === "reasoning" || phase === "executing"}
+              placeholder={
+                phase === "empty"
+                  ? `Ask DeepResearch to explore any topic…`
+                  : "Ask a follow-up or refine the research direction…"
+              }
+            />
+            <p className="mt-2 text-center text-[11px] text-neutral-500">
+              DeepResearch Grounding Engine · All findings indexed to verified evidence sources.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <SidePanel state={panel} onClose={() => setPanel(null)} />
     </div>
   );
 }
