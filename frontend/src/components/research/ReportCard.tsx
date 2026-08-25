@@ -1,4 +1,6 @@
+import React from "react";
 import { BarChart3, Download, FileCode2, Maximize2, Sparkles } from "lucide-react";
+
 import { Markdown } from "./Markdown";
 
 type Props = {

@@ -1,14 +1,15 @@
+import React from "react";
 export type ResearchMode = "quick" | "deep" | "academic";
 
 export const MODES: {
   id: ResearchMode;
-  emoji: string;
+  iconName: "Zap" | "Search" | "GraduationCap";
   label: string;
   hint: string;
 }[] = [
-  { id: "quick", emoji: "⚡", label: "Quick Scan", hint: "1–2 min" },
-  { id: "deep", emoji: "🔍", label: "Deep Investigation", hint: "3–5 min" },
-  { id: "academic", emoji: "🎓", label: "Academic Literature Review", hint: "Rigorous" },
+  { id: "quick", iconName: "Zap", label: "Quick Scan", hint: "1–2 min" },
+  { id: "deep", iconName: "Search", label: "Deep Investigation", hint: "3–5 min" },
+  { id: "academic", iconName: "GraduationCap", label: "Academic Literature Review", hint: "Rigorous" },
 ];
 
 export type Session = {
@@ -37,7 +38,15 @@ export type Plan = {
   hypotheses: { text: string; confidence: number }[];
 };
 
-export type Step = { icon: string; label: string; detail: string };
+export type ThoughtTrace = {
+  agent: string;
+  action: string;
+  detail: string;
+  timestamp: string;
+  status: "running" | "completed";
+};
+
+export type Step = { iconName: string; label: string; detail: string };
 
 export type AgentCost = { agent: string; tokens: number; cost: number };
 
@@ -56,24 +65,24 @@ export const SESSIONS: Session[] = [
 
 export const STEPS: Step[] = [
   {
-    icon: "📋",
-    label: "Supervisor Formulating Strategy",
-    detail: "Decomposing research objective into targeted hypotheses and search queries.",
+    iconName: "Compass",
+    label: "Supervisor Agent Formulation",
+    detail: "Decomposing research objective into targeted hypotheses, search queries, and methodology.",
   },
   {
-    icon: "🔍",
+    iconName: "Database",
     label: "Dual Retrieval (Qdrant RAG + Web)",
-    detail: "Querying dense/sparse hybrid vector store and real-time academic sources.",
+    detail: "Running dense + sparse hybrid vector search and querying live peer-reviewed repositories.",
   },
   {
-    icon: "🔬",
+    iconName: "Binary",
     label: "Fact Extraction & EKG Linking",
-    detail: "Extracting atomic claims, evaluating credibility C(S), and linking graph edges.",
+    detail: "Extracting atomic claims, evaluating credibility C(S), and linking relational graph edges.",
   },
   {
-    icon: "📝",
-    label: "Grounded Report Synthesis",
-    detail: "Synthesizing publication-grade report with inline numbered citations.",
+    iconName: "FileCheck",
+    label: "Synthesizer Report Generation",
+    detail: "Synthesizing comprehensive report with inline numeric citations and verification checks.",
   },
 ];
 

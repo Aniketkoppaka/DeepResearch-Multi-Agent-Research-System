@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { CheckCircle2, ClipboardList, PencilLine, Send } from "lucide-react";
+import React, { useState } from "react";
+import { CheckCircle2, ClipboardList, PencilLine, Send, Check } from "lucide-react";
+
 import type { Plan } from "@/lib/research-data";
 
 type Props = {
@@ -14,7 +15,7 @@ export function PlanReviewCard({ plan, decided, onApprove, onRefine }: Props) {
   const [feedback, setFeedback] = useState("");
 
   return (
-    <div className="surface-panel glow-ring p-5 bg-[#212121] border border-white/10 rounded-2xl">
+    <div className="surface-panel glow-ring p-5 bg-[#212121] border border-white/10 rounded-2xl shadow-xl">
       <div className="flex items-center gap-2 pb-3">
         <ClipboardList className="size-4 text-emerald-400" />
         <h3 className="text-sm font-semibold text-white">Research Plan · Awaiting your review</h3>
@@ -40,7 +41,7 @@ export function PlanReviewCard({ plan, decided, onApprove, onRefine }: Props) {
 
       <div className="mt-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-          Hypotheses
+          Initial Hypotheses
         </p>
         <ul className="mt-2 space-y-2.5">
           {plan.hypotheses.map((h, i) => (
@@ -66,22 +67,22 @@ export function PlanReviewCard({ plan, decided, onApprove, onRefine }: Props) {
         {decided === "approved" ? (
           <div className="flex items-center gap-2 text-xs font-medium text-emerald-400">
             <CheckCircle2 className="size-4" />
-            <span>Plan approved — Autonomous execution in progress</span>
+            <span>Plan approved — Autonomous multi-agent execution in progress</span>
           </div>
         ) : (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={onApprove}
-                className="flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                className="flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 cursor-pointer"
               >
-                <CheckCircle2 className="size-3.5" />
+                <Check className="size-3.5" />
                 <span>Approve &amp; Begin Research</span>
               </button>
 
               <button
                 onClick={() => setShowFeedback((s) => !s)}
-                className="flex items-center gap-1.5 rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+                className="flex items-center gap-1.5 rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white cursor-pointer"
               >
                 <PencilLine className="size-3.5" />
                 <span>Request Changes / Refine</span>
@@ -111,7 +112,7 @@ export function PlanReviewCard({ plan, decided, onApprove, onRefine }: Props) {
                     setFeedback("");
                     setShowFeedback(false);
                   }}
-                  className="flex items-center gap-1 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black hover:opacity-90"
+                  className="flex items-center gap-1 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black hover:opacity-90 cursor-pointer"
                 >
                   <Send className="size-3" />
                   <span>Send</span>

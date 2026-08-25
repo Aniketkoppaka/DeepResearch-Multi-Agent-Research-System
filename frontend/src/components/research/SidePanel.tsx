@@ -1,3 +1,4 @@
+import React from "react";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -6,6 +7,7 @@ import {
   Quote,
   X,
 } from "lucide-react";
+
 import { Markdown } from "./Markdown";
 import type { Citation, Metrics } from "@/lib/research-data";
 
