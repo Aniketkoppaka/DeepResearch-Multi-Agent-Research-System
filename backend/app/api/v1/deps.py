@@ -11,11 +11,13 @@ from app.db.models.user import User
 from app.db.session import get_db_session
 from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_repository import DocumentRepository
+from app.repositories.evidence_repository import EvidenceRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.services.auth_service import AuthService
 from app.services.document_service import DocumentService
+from app.services.evidence.evidence_service import EvidenceService
 from app.services.ingestion_service import IngestionService
 from app.services.retrieval.hybrid_search import HybridSearchService
 from app.services.retrieval.vector_store import VectorStoreService
@@ -52,6 +54,12 @@ async def get_document_chunk_repository(
     session: AsyncSession = Depends(get_db_session),
 ) -> DocumentChunkRepository:
     return DocumentChunkRepository(session)
+
+
+async def get_evidence_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> EvidenceRepository:
+    return EvidenceRepository(session)
 
 
 async def get_vector_store_service() -> VectorStoreService:
@@ -96,6 +104,16 @@ async def get_ingestion_service(
         chunk_repo=chunk_repo,
         vector_store=vector_store,
         llm_gateway=llm_gateway,
+    )
+
+
+async def get_evidence_service(
+    evidence_repo: EvidenceRepository = Depends(get_evidence_repository),
+    workspace_repo: WorkspaceRepository = Depends(get_workspace_repository),
+) -> EvidenceService:
+    return EvidenceService(
+        evidence_repo=evidence_repo,
+        workspace_repo=workspace_repo,
     )
 
 
