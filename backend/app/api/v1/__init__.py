@@ -5,6 +5,7 @@ from app.api.v1.documents import router as documents_router
 from app.api.v1.evidence import router as evidence_router
 from app.api.v1.execution import router as execution_router
 from app.api.v1.health import router as health_router
+from app.api.v1.metrics import router as metrics_router
 from app.api.v1.plans import router as plans_router
 from app.api.v1.reports import router as reports_router
 from app.api.v1.search import router as search_router
@@ -20,3 +21,4 @@ api_router.include_router(evidence_router, prefix="/workspaces", tags=["evidence
 api_router.include_router(plans_router, prefix="/workspaces", tags=["plans"])
 api_router.include_router(execution_router, prefix="/workspaces", tags=["execution"])
 api_router.include_router(reports_router, prefix="/workspaces", tags=["reports"])
+api_router.include_router(metrics_router, prefix="/workspaces", tags=["metrics"])

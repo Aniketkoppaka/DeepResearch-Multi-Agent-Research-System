@@ -12,6 +12,7 @@ from app.db.session import get_db_session
 from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.evidence_repository import EvidenceRepository
+from app.repositories.metrics_repository import MetricsRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.report_repository import ReportRepository
 from app.repositories.user_repository import UserRepository
@@ -24,6 +25,8 @@ from app.services.agents.supervisor import SupervisorService
 from app.services.agents.synthesizer import SynthesizerAgent
 from app.services.auth_service import AuthService
 from app.services.document_service import DocumentService
+from app.services.evaluations.metrics_service import MetricsService
+from app.services.evaluations.ragas_evaluator import RagasEvaluator
 from app.services.evidence.evidence_service import EvidenceService
 from app.services.ingestion_service import IngestionService
 from app.services.reports.report_service import ReportService
@@ -75,6 +78,12 @@ async def get_report_repository(
     session: AsyncSession = Depends(get_db_session),
 ) -> ReportRepository:
     return ReportRepository(session)
+
+
+async def get_metrics_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> MetricsRepository:
+    return MetricsRepository(session)
 
 
 async def get_vector_store_service() -> VectorStoreService:
@@ -154,6 +163,12 @@ async def get_synthesizer_agent(
     return SynthesizerAgent(llm_gateway)
 
 
+async def get_ragas_evaluator(
+    llm_gateway: LiteLLMGateway = Depends(get_litellm_gateway),
+) -> RagasEvaluator:
+    return RagasEvaluator(llm_gateway)
+
+
 async def get_search_agent(
     hybrid_search: HybridSearchService = Depends(get_hybrid_search_service),
     web_search: WebSearchEngine = Depends(get_web_search_engine),
@@ -198,6 +213,22 @@ async def get_report_service(
         workspace_repo=workspace_repo,
         evidence_repo=evidence_repo,
         synthesizer=synthesizer,
+    )
+
+
+async def get_metrics_service(
+    metrics_repo: MetricsRepository = Depends(get_metrics_repository),
+    workspace_repo: WorkspaceRepository = Depends(get_workspace_repository),
+    report_repo: ReportRepository = Depends(get_report_repository),
+    evidence_repo: EvidenceRepository = Depends(get_evidence_repository),
+    evaluator: RagasEvaluator = Depends(get_ragas_evaluator),
+) -> MetricsService:
+    return MetricsService(
+        metrics_repo=metrics_repo,
+        workspace_repo=workspace_repo,
+        report_repo=report_repo,
+        evidence_repo=evidence_repo,
+        evaluator=evaluator,
     )
 
 
