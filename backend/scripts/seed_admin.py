@@ -27,22 +27,19 @@ async def seed_user(email: str, password: str, full_name: str) -> None:
             logger.info("User with email %s already exists. Updating password...", email)
             existing.hashed_password = get_password_hash(password)
             existing.is_active = True
-            existing.is_superuser = True
             await user_repo.update(existing)
-            logger.info("Admin user '%s' password updated successfully!", email)
+            logger.info("User '%s' password updated successfully!", email)
             return
 
         hashed_pw = get_password_hash(password)
-        new_user = User(
-            id=uuid.uuid4(),
+        await user_repo.create(
             email=email,
             hashed_password=hashed_pw,
             full_name=full_name,
-            is_active=True,
-            is_superuser=True,
         )
-        await user_repo.create(new_user)
-        logger.info("Admin user '%s' created successfully!", email)
+        logger.info("User '%s' created successfully!", email)
+
+
 
 
 def main() -> None:

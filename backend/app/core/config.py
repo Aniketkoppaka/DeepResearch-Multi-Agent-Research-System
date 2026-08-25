@@ -71,8 +71,12 @@ class Settings(BaseSettings):
     def REDIS_URI(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
+    USE_SQLITE: bool = False
+
     @property
     def POSTGRES_URI(self) -> str:
+        if self.USE_SQLITE:
+            return "sqlite+aiosqlite:///./deepresearch.db"
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -80,4 +84,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
 
