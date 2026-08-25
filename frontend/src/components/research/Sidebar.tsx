@@ -13,11 +13,14 @@ import {
   GraduationCap,
   Sparkles,
   PanelLeft,
+  Settings,
+  Activity,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Session } from "@/lib/research-data";
@@ -36,6 +39,8 @@ type Props = {
   onDelete: (id: string) => void;
   onAuthClick: () => void;
   onLogout: () => void;
+  onOpenProfile: () => void;
+  onOpenUsage: () => void;
 };
 
 export function Sidebar({
@@ -50,6 +55,8 @@ export function Sidebar({
   onDelete,
   onAuthClick,
   onLogout,
+  onOpenProfile,
+  onOpenUsage,
 }: Props) {
   const grouped = useMemo(
     () => GROUPS.map((g) => [g, sessions.filter((s) => s.group === g)] as const),
@@ -101,7 +108,6 @@ export function Sidebar({
               </button>
             </>
           ) : (
-            /* When collapsed: Shows Kairo app icon, switches to expand toggle on hover */
             <button
               onClick={onToggle}
               title="Expand sidebar"
@@ -117,7 +123,6 @@ export function Sidebar({
             </button>
           )}
         </div>
-
 
         {/* New Research Button */}
         <div className="mt-3">
@@ -207,7 +212,7 @@ export function Sidebar({
 
         {!open && <div className="flex-1" />}
 
-        {/* User Account / Profile section */}
+        {/* User Account / Profile Dropdown with Profile, Usage, Logout */}
         <div className="mt-auto border-t border-white/10 pt-2">
           {user ? (
             open ? (
@@ -226,12 +231,22 @@ export function Sidebar({
                     <MoreHorizontal className="size-3.5 text-neutral-400" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 mb-1">
-                  <div className="px-2 py-1.5 text-xs text-neutral-400 border-b border-white/5">
-                    Signed in as <span className="text-white font-medium">{user.email}</span>
+                <DropdownMenuContent align="end" className="w-56 mb-1 bg-[#1f1f1f] border-white/10 p-1.5 shadow-2xl rounded-xl">
+                  <div className="px-2.5 py-2 text-xs text-neutral-400 border-b border-white/10 mb-1">
+                    <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">Account</p>
+                    <p className="text-white font-medium truncate mt-0.5">{user.email}</p>
                   </div>
-                  <DropdownMenuItem onClick={onLogout} className="text-red-400 focus:text-red-400 mt-1 cursor-pointer">
-                    <LogOut className="mr-2 size-3.5" />
+                  <DropdownMenuItem onClick={onOpenProfile} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
+                    <Settings className="mr-2.5 size-3.5 text-neutral-400" />
+                    <span>Profile &amp; Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onOpenUsage} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
+                    <Activity className="mr-2.5 size-3.5 text-emerald-400" />
+                    <span>Usage &amp; Model Limits</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10 my-1" />
+                  <DropdownMenuItem onClick={onLogout} className="cursor-pointer py-2 px-2.5 text-xs text-red-400 focus:text-red-300 focus:bg-red-950/40 rounded-lg">
+                    <LogOut className="mr-2.5 size-3.5" />
                     <span>Log Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -246,12 +261,22 @@ export function Sidebar({
                     {user.full_name ? user.full_name[0].toUpperCase() : user.email[0].toUpperCase()}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" side="right" className="w-44 ml-2 mb-1">
-                  <div className="px-2 py-1.5 text-xs text-neutral-400 border-b border-white/5">
-                    Signed in as <span className="text-white font-medium">{user.email}</span>
+                <DropdownMenuContent align="start" side="right" className="w-56 ml-2 mb-1 bg-[#1f1f1f] border-white/10 p-1.5 shadow-2xl rounded-xl">
+                  <div className="px-2.5 py-2 text-xs text-neutral-400 border-b border-white/10 mb-1">
+                    <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">Account</p>
+                    <p className="text-white font-medium truncate mt-0.5">{user.email}</p>
                   </div>
-                  <DropdownMenuItem onClick={onLogout} className="text-red-400 focus:text-red-400 mt-1 cursor-pointer">
-                    <LogOut className="mr-2 size-3.5" />
+                  <DropdownMenuItem onClick={onOpenProfile} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
+                    <Settings className="mr-2.5 size-3.5 text-neutral-400" />
+                    <span>Profile &amp; Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onOpenUsage} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
+                    <Activity className="mr-2.5 size-3.5 text-emerald-400" />
+                    <span>Usage &amp; Model Limits</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10 my-1" />
+                  <DropdownMenuItem onClick={onLogout} className="cursor-pointer py-2 px-2.5 text-xs text-red-400 focus:text-red-300 focus:bg-red-950/40 rounded-lg">
+                    <LogOut className="mr-2.5 size-3.5" />
                     <span>Log Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

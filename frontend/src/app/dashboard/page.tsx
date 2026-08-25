@@ -3,7 +3,8 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-import { Sparkles, ArrowRight, Lock, LogIn } from "lucide-react";
+import { Sparkles, ArrowRight, Lock, LogIn, User, Activity } from "lucide-react";
+
 import { Sidebar } from "@/components/research/Sidebar";
 import { Composer } from "@/components/research/Composer";
 import { ReasoningAccordion } from "@/components/research/ReasoningAccordion";
@@ -42,12 +43,19 @@ export default function DashboardPage() {
   const [decision, setDecision] = useState<"approved" | "refine" | null>(null);
   const [panel, setPanel] = useState<PanelState>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showUsageModal, setShowUsageModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authName, setAuthName] = useState("");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
+
+  // Profile editable fields
+  const [displayName, setDisplayName] = useState(user?.full_name || "Admin");
+  const [profileSaved, setProfileSaved] = useState(false);
+
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -295,6 +303,8 @@ export default function DashboardPage() {
         onDelete={deleteSession}
         onAuthClick={() => setShowAuthModal(true)}
         onLogout={handleLogout}
+        onOpenProfile={() => setShowProfileModal(true)}
+        onOpenUsage={() => setShowUsageModal(true)}
       />
 
       {/* Main Conversational Workspace */}
@@ -302,15 +312,16 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-y-auto px-4 py-8">
           <div className="mx-auto max-w-3xl space-y-6">
             {phase === "empty" && (
-              <div className="flex min-h-[55vh] flex-col items-center justify-center text-center pt-8">
+              <div className="flex min-h-[62vh] flex-col items-center justify-center text-center pt-24 pb-8">
                 <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white max-w-xl leading-tight">
                   What topic would you like to deeply research today?
                 </h1>
-                <p className="mt-3 max-w-lg text-sm text-neutral-400 leading-relaxed">
+                <p className="mt-4 max-w-lg text-sm text-neutral-400 leading-relaxed">
                   Autonomous multi-agent research: supervisor planning, hybrid vector RAG retrieval, fact extraction, and citation-backed synthesis.
                 </p>
               </div>
             )}
+
 
 
 
@@ -507,6 +518,200 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Profile & Settings Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-md bg-[#1e1e1e] border border-white/10 rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
+                  <User className="size-4" />
+                </div>
+                <h2 className="text-base font-semibold text-white">Profile &amp; Account Settings</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowProfileModal(false);
+                  setProfileSaved(false);
+                }}
+                className="text-neutral-400 hover:text-white text-sm cursor-pointer p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {profileSaved && (
+              <div className="mt-4 p-3 bg-emerald-950/60 border border-emerald-700/50 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
+                <span>Profile updated successfully!</span>
+              </div>
+            )}
+
+            <div className="mt-5 space-y-4">
+              {/* Profile Avatar Change */}
+              <div className="flex items-center gap-4 bg-neutral-900/60 p-3 rounded-xl border border-white/5">
+                <div className="flex size-14 items-center justify-center rounded-full bg-emerald-600 font-bold text-xl text-white shadow-md">
+                  {displayName ? displayName[0].toUpperCase() : user?.email[0].toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-white">Profile Photo</p>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">PNG or JPG up to 5MB</p>
+                  <label className="mt-2 inline-block px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 border border-white/10 rounded-lg text-[11px] font-medium text-neutral-200 cursor-pointer transition-colors">
+                    Upload New Avatar
+                    <input type="file" accept="image/*" className="hidden" />
+                  </label>
+                </div>
+              </div>
+
+              {/* Display Name */}
+              <div>
+                <label className="block text-xs font-medium text-neutral-300 mb-1">Display Name</label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-900 border border-white/10 rounded-xl text-white text-xs outline-none focus:border-emerald-500 transition-colors"
+                />
+              </div>
+
+              {/* Email Address */}
+              <div>
+                <label className="block text-xs font-medium text-neutral-300 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  disabled
+                  value={user?.email || "admin@gmail.com"}
+                  className="w-full px-3 py-2 bg-neutral-900/50 border border-white/5 rounded-xl text-neutral-400 text-xs outline-none cursor-not-allowed"
+                />
+                <p className="text-[10px] text-neutral-500 mt-1">Managed via authentication provider</p>
+              </div>
+
+              <div className="pt-2 flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowProfileModal(false)}
+                  className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-xl text-xs font-medium text-neutral-300 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (user) {
+                      setAuth({ ...user, full_name: displayName }, user.id);
+                    }
+                    setProfileSaved(true);
+                    setTimeout(() => setShowProfileModal(false), 1200);
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-xs font-semibold text-white transition-colors cursor-pointer"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Usage & Model Limits Modal */}
+      {showUsageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-lg bg-[#1e1e1e] border border-white/10 rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
+                  <Activity className="size-4" />
+                </div>
+                <h2 className="text-base font-semibold text-white">Usage &amp; Model Quotas</h2>
+              </div>
+              <button
+                onClick={() => setShowUsageModal(false)}
+                className="text-neutral-400 hover:text-white text-sm cursor-pointer p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              {/* Monthly Overview Card */}
+              <div className="bg-neutral-900/80 border border-white/5 rounded-xl p-4">
+                <div className="flex justify-between items-center text-xs mb-2">
+                  <span className="text-neutral-300 font-medium">Monthly Research Token Allocation</span>
+                  <span className="font-mono text-emerald-400 font-semibold">124,500 / 500,000 tokens</span>
+                </div>
+                <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: "24.9%" }} />
+                </div>
+                <p className="text-[11px] text-neutral-400 mt-2">
+                  75.1% remaining · Resets on the 1st of next month
+                </p>
+              </div>
+
+              {/* Multi-Agent Model Breakdown */}
+              <div className="space-y-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                  Subagent Quotas &amp; Model Limits
+                </p>
+
+                <div className="bg-neutral-900/50 border border-white/5 rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold text-white">Supervisor &amp; Planner Agent</p>
+                      <span className="text-[10px] bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded">GPT-4o</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">85 / 100 deep planning runs left today</p>
+                  </div>
+                  <span className="text-xs font-mono text-emerald-400 font-medium">85%</span>
+                </div>
+
+                <div className="bg-neutral-900/50 border border-white/5 rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold text-white">Dual Hybrid Search &amp; RAG</p>
+                      <span className="text-[10px] bg-cyan-950 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-800/40">Qdrant Vector</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">Unlimited document chunk embeddings</p>
+                  </div>
+                  <span className="text-xs font-mono text-cyan-400 font-medium">Active</span>
+                </div>
+
+                <div className="bg-neutral-900/50 border border-white/5 rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold text-white">Fact Extraction &amp; Verification</p>
+                      <span className="text-[10px] bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded">Claude 3.5 Sonnet</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">240 / 300 atomic claim validations left</p>
+                  </div>
+                  <span className="text-xs font-mono text-emerald-400 font-medium">80%</span>
+                </div>
+
+                <div className="bg-neutral-900/50 border border-white/5 rounded-xl p-3 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-semibold text-white">Synthesizer &amp; Exporter</p>
+                      <span className="text-[10px] bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded">GPT-4o-mini</span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">High-throughput unlimited reports</p>
+                  </div>
+                  <span className="text-xs font-mono text-emerald-400 font-medium">99%</span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowUsageModal(false)}
+                  className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-xl text-xs font-medium text-white transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
