@@ -8,6 +8,7 @@ from fastapi import HTTPException, UploadFile, status
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.schemas.document import DocumentResponse
+from app.services.retrieval.vector_store import VectorStoreService
 from app.workers.ingestion_worker import enqueue_ingestion_job
 
 MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
@@ -36,10 +37,12 @@ class DocumentService:
         document_repo: DocumentRepository,
         workspace_repo: WorkspaceRepository,
         upload_dir: str = "uploads",
+        vector_store: Optional[VectorStoreService] = None,
     ) -> None:
         self.document_repo = document_repo
         self.workspace_repo = workspace_repo
         self.upload_dir = upload_dir
+        self.vector_store = vector_store or VectorStoreService()
 
     async def upload_document(
         self,
@@ -178,10 +181,17 @@ class DocumentService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Document not found in workspace",
             )
-        # Remove file if exists
+        # Remove file from disk if exists
         if os.path.exists(document.storage_key):
             try:
                 os.remove(document.storage_key)
             except OSError:
                 pass
+
+        # Remove vector points from Qdrant if exists
+        try:
+            await self.vector_store.delete_by_document(document_id)
+        except Exception:
+            pass
+
         return await self.document_repo.delete(document)

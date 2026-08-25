@@ -15,6 +15,7 @@ from app.db.session import AsyncSessionLocal
 from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.services.ingestion_service import IngestionService
+from app.services.retrieval.vector_store import VectorStoreService
 
 logger = logging.getLogger("app.workers.ingestion")
 
@@ -34,7 +35,9 @@ async def enqueue_ingestion_job(document_id: uuid.UUID, workspace_id: uuid.UUID)
         return True
     except Exception as e:
         logger.warning(
-            f"Failed to enqueue ARQ ingestion job for document {document_id}: {str(e)}"
+            "Failed to enqueue ARQ ingestion job for document %s: %s",
+            document_id,
+            str(e),
         )
         return False
 
@@ -42,17 +45,21 @@ async def enqueue_ingestion_job(document_id: uuid.UUID, workspace_id: uuid.UUID)
 async def ingest_document_task(
     ctx: Dict[str, Any], document_id_str: str, workspace_id_str: str
 ) -> bool:
-
     """ARQ Worker task executing document ingestion with its own DB session."""
     doc_id = uuid.UUID(document_id_str)
     ws_id = uuid.UUID(workspace_id_str)
 
-    logger.info(f"ARQ Worker starting ingestion task for document {doc_id}")
+    logger.info("ARQ Worker starting ingestion task for document %s", doc_id)
 
     async with AsyncSessionLocal() as session:
         doc_repo = DocumentRepository(session)
         chunk_repo = DocumentChunkRepository(session)
-        service = IngestionService(doc_repo, chunk_repo)
+        vector_store = VectorStoreService()
+        service = IngestionService(
+            document_repo=doc_repo,
+            chunk_repo=chunk_repo,
+            vector_store=vector_store,
+        )
         return await service.ingest_document(doc_id, ws_id)
 
 

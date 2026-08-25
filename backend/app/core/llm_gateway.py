@@ -26,8 +26,9 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 import litellm
-from litellm import acompletion
+from litellm import acompletion, aembedding
 from litellm.exceptions import (
+
     AuthenticationError,
     BadRequestError,
     RateLimitError,
@@ -353,10 +354,103 @@ class LiteLLMGateway:
             latency_ms=latency_ms,
         )
 
+    async def generate_embeddings(
+        self,
+        input_texts: List[str],
+        model: Optional[str] = None,
+    ) -> List[List[float]]:
+        """
+        Generate dense vector embeddings with retries and fallback model support.
+        """
+        if not input_texts:
+            return []
+
+        target_model = model or settings.EMBEDDING_MODEL
+        fallback_model = settings.EMBEDDING_FALLBACK_MODEL
+
+        try:
+            return await self._generate_embeddings_with_retry(
+                input_texts=input_texts, model=target_model
+            )
+        except GatewayAuthError:
+            raise
+        except GatewayError as exc:
+            if fallback_model and fallback_model != target_model:
+                logger.warning(
+                    "Primary embedding model %s failed (%s). Attempting fallback %s",
+                    target_model,
+                    exc,
+                    fallback_model,
+                )
+                try:
+                    return await self._generate_embeddings_with_retry(
+                        input_texts=input_texts, model=fallback_model
+                    )
+                except Exception as fallback_exc:
+                    logger.error(
+                        "Fallback embedding model %s failed: %s",
+                        fallback_model,
+                        fallback_exc,
+                    )
+                    raise exc from fallback_exc
+            raise
+
+    async def _generate_embeddings_with_retry(
+        self,
+        input_texts: List[str],
+        model: str,
+    ) -> List[List[float]]:
+        attempts = 0
+        last_error: Optional[Exception] = None
+
+        while attempts <= self.max_retries:
+            try:
+                response = await asyncio.wait_for(
+                    aembedding(model=model, input=input_texts),
+                    timeout=float(self.timeout_seconds),
+                )
+                embeddings = [item["embedding"] for item in response.data]
+                return embeddings
+            except (RateLimitError, ServiceUnavailableError) as exc:
+                attempts += 1
+                last_error = exc
+                if attempts > self.max_retries:
+                    raise GatewayRateLimitError(cause=exc) if isinstance(
+                        exc, RateLimitError
+                    ) else GatewayProviderError(cause=exc) from exc
+                backoff = (2 ** (attempts - 1)) + (time.monotonic() % 1)
+                logger.warning(
+                    "Embedding retryable error (%s) on attempt %d/%d. Waiting %.2fs...",
+                    type(exc).__name__,
+                    attempts,
+                    self.max_retries,
+                    backoff,
+                )
+                await asyncio.sleep(backoff)
+            except TimeoutError as exc:
+                attempts += 1
+                last_error = exc
+                if attempts > self.max_retries:
+                    raise GatewayTimeoutError(
+                        f"Embedding call to {model} timed out"
+                    ) from exc
+                backoff = (2 ** (attempts - 1))
+                await asyncio.sleep(backoff)
+            except AuthenticationError as exc:
+                raise GatewayAuthError(cause=exc) from exc
+            except BadRequestError as exc:
+                raise GatewayBadResponseError(cause=exc) from exc
+            except Exception as exc:
+                logger.exception("Unexpected embedding error: %s", exc)
+                raise GatewayProviderError(cause=exc) from exc
+
+        raise GatewayProviderError(cause=last_error)
+
 
 # ---------------------------------------------------------------------------
 # Singleton factory — use this in dependency injection
 # ---------------------------------------------------------------------------
+
 
 def get_litellm_gateway(
     model: Optional[str] = None,

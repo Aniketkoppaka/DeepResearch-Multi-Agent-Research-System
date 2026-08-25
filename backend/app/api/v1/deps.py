@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.llm_gateway import LiteLLMGateway, get_litellm_gateway
 from app.core.security import decode_token
 from app.db.models.user import User
 from app.db.session import get_db_session
@@ -16,6 +17,8 @@ from app.repositories.workspace_repository import WorkspaceRepository
 from app.services.auth_service import AuthService
 from app.services.document_service import DocumentService
 from app.services.ingestion_service import IngestionService
+from app.services.retrieval.hybrid_search import HybridSearchService
+from app.services.retrieval.vector_store import VectorStoreService
 from app.services.workspace_service import WorkspaceService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
@@ -51,6 +54,17 @@ async def get_document_chunk_repository(
     return DocumentChunkRepository(session)
 
 
+async def get_vector_store_service() -> VectorStoreService:
+    return VectorStoreService()
+
+
+async def get_hybrid_search_service(
+    vector_store: VectorStoreService = Depends(get_vector_store_service),
+    llm_gateway: LiteLLMGateway = Depends(get_litellm_gateway),
+) -> HybridSearchService:
+    return HybridSearchService(vector_store, llm_gateway)
+
+
 async def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repository),
     refresh_repo: RefreshTokenRepository = Depends(get_refresh_token_repository),
@@ -74,8 +88,15 @@ async def get_document_service(
 async def get_ingestion_service(
     document_repo: DocumentRepository = Depends(get_document_repository),
     chunk_repo: DocumentChunkRepository = Depends(get_document_chunk_repository),
+    vector_store: VectorStoreService = Depends(get_vector_store_service),
+    llm_gateway: LiteLLMGateway = Depends(get_litellm_gateway),
 ) -> IngestionService:
-    return IngestionService(document_repo, chunk_repo)
+    return IngestionService(
+        document_repo=document_repo,
+        chunk_repo=chunk_repo,
+        vector_store=vector_store,
+        llm_gateway=llm_gateway,
+    )
 
 
 async def get_current_user(

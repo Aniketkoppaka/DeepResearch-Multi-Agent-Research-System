@@ -52,6 +52,20 @@ class Settings(BaseSettings):
     CHUNK_MAX_SIZE: int = 1500  # Max hard boundary characters per chunk
     CHUNK_OVERLAP: int = 150  # Overlap characters for sliding window fallback
 
+    # Vector Store & Embedding Configuration
+    QDRANT_COLLECTION_NAME: str = "deepresearch_chunks"
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    EMBEDDING_FALLBACK_MODEL: str = "text-embedding-ada-002"
+    EMBEDDING_DIMENSION: int = 1536
+    HYBRID_SEARCH_DENSE_WEIGHT: float = 0.7
+    HYBRID_SEARCH_SPARSE_WEIGHT: float = 0.3
+    RRF_K_CONSTANT: int = 60
+
+    @property
+    def QDRANT_URL(self) -> str:
+        return f"http://{self.QDRANT_HOST}:{self.QDRANT_PORT}"
+
+
 
     @property
     def REDIS_URI(self) -> str:
