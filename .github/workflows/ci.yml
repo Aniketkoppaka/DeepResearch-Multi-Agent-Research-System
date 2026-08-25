@@ -1,54 +1,101 @@
-name: CI
+name: DeepResearch Cloud Ci & Runtime Verification
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: [ main ]
 
 jobs:
-  backend-checks:
+  verify:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: deepresearch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Pathon
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Install Dependencies
-        run: |
-          cd backend
-          pip install -r requirements.txt
-      - name: Run Ruff Linter
-        run: |
-          cd backend
-          ruff check .
-      - name: Run Mypy Type Checker
-        run: |
-          cd backend
-          mypy app
-      - name: Run Pytest
-        run: |
-          cd backend
-          pytest
+          python-version: '3.11'
+          cache: 'pip'
 
-  frontend-checks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node
+      - name: Set up Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-      - name: Install Dependencies
+          node-version: '18'
+
+      - name: Install Backend Dependencies
         run: |
-          cd frontend
-          npm ci
-      - name: Run TypeCheck
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
         run: |
-          cd frontend
+          npm ci --legacy-peer-deps
+
+      - name: Backend Quality Gates (Ruff & Mypy)
+        working-directory: ./backend
+        run: |
+          python -m ruff check .
+          python -m mypy app --no-incremental
+
+      - name: Live PostgreSQL Alembic Migration Verification
+        working-directory: ./backend
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: deepresearch
+        run: |
+          python -m alembic upgrade head
+          python -m alembic current
+          python -m alembic downgrade base
+          python -m alembic upgrade head
+
+      - name: Run Backend Pytest Suite (with Live Postgres & Redis)
+        working-directory: ./backend
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: deepresearch
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: |
+          python -m pytest -v
+
+      - name: Frontend Quality Gates (ESLint, TypeScript, Vitest)
+        working-directory: ./frontend
+        run: |
+          npx eslint "src/**/*.ts" "src/**/*.tsx"
           npx tsc --noEmit
-      - name: Run Vitest
+          npx vitest run
+
+      - name: Test Frontend Production Build
+        working-directory: ./frontend
         run: |
-          cd frontend
-          npm run test
+          npm run build
