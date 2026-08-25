@@ -22,11 +22,13 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
+      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const data = isJson ? await res.json() : null;
       if (!res.ok) {
-        throw new Error(data.detail || "Login failed");
+        throw new Error((data && data.detail) || `Server connection error (${res.status}). Ensure backend and database are running.`);
       }
       setAuth(data.user, data.access_token);
+
       if (typeof window !== "undefined") {
         localStorage.setItem("access_token", data.access_token);
         if (data.refresh_token) {

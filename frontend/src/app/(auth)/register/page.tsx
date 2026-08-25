@@ -21,11 +21,13 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, full_name: fullName, password }),
       });
-      const data = await res.json();
+      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const data = isJson ? await res.json() : null;
       if (!res.ok) {
-        throw new Error(data.detail || "Registration failed");
+        throw new Error((data && data.detail) || `Server connection error (${res.status}). Ensure backend and database are running.`);
       }
       router.push("/login");
+
     } catch (err: any) {
       setError(err.message);
     } finally {
