@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from "react";
+import React, { Fragment, type ReactNode } from "react";
 
 /** Minimal markdown renderer with interactive [n] citation tags. */
 export function Markdown({

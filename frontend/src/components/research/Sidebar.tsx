@@ -41,6 +41,7 @@ type Props = {
   onLogout: () => void;
   onOpenProfile: () => void;
   onOpenUsage: () => void;
+  onOpenProviders: () => void;
 };
 
 export function Sidebar({
@@ -57,6 +58,7 @@ export function Sidebar({
   onLogout,
   onOpenProfile,
   onOpenUsage,
+  onOpenProviders,
 }: Props) {
   const grouped = useMemo(
     () => GROUPS.map((g) => [g, sessions.filter((s) => s.group === g)] as const),
@@ -240,6 +242,10 @@ export function Sidebar({
                     <Settings className="mr-2.5 size-3.5 text-neutral-400" />
                     <span>Profile &amp; Settings</span>
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onOpenProviders} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
+                    <Sparkles className="mr-2.5 size-3.5 text-cyan-400" />
+                    <span>LLM Providers</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={onOpenUsage} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
                     <Activity className="mr-2.5 size-3.5 text-emerald-400" />
                     <span>Usage &amp; Model Limits</span>
@@ -269,6 +275,10 @@ export function Sidebar({
                   <DropdownMenuItem onClick={onOpenProfile} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
                     <Settings className="mr-2.5 size-3.5 text-neutral-400" />
                     <span>Profile &amp; Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onOpenProviders} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
+                    <Sparkles className="mr-2.5 size-3.5 text-cyan-400" />
+                    <span>LLM Providers</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={onOpenUsage} className="cursor-pointer py-2 px-2.5 text-xs text-neutral-200 focus:bg-neutral-800 rounded-lg">
                     <Activity className="mr-2.5 size-3.5 text-emerald-400" />

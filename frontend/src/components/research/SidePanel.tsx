@@ -9,12 +9,16 @@ import {
 } from "lucide-react";
 
 import { Markdown } from "./Markdown";
+import { KnowledgeGraphCanvas } from "./KnowledgeGraphCanvas";
+import { DocumentChunkInspector, type DocumentChunk } from "./DocumentChunkInspector";
 import type { Citation, Metrics } from "@/lib/research-data";
 
 export type PanelState =
   | { kind: "citation"; citation: Citation }
   | { kind: "metrics"; metrics: Metrics }
   | { kind: "canvas"; report: string }
+  | { kind: "graph"; citations: Citation[] }
+  | { kind: "chunks"; documentName?: string; chunks?: DocumentChunk[] }
   | null;
 
 const CLAIM_COLORS: Record<Citation["claim"], string> = {
@@ -54,6 +58,18 @@ export function SidePanel({ state, onClose }: { state: PanelState; onClose: () =
               </h3>
             )}
             {state.kind === "canvas" && <h3 className="text-sm font-semibold text-white">Report Canvas</h3>}
+            {state.kind === "graph" && (
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
+                <span className="flex size-2 rounded-full bg-emerald-400 animate-pulse" />
+                Evidence Knowledge Graph (EKG)
+              </h3>
+            )}
+            {state.kind === "chunks" && (
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Layers className="size-4 text-emerald-400" />
+                Document Chunks &amp; Ingestion
+              </h3>
+            )}
             <button
               onClick={onClose}
               aria-label="Close panel"
@@ -185,6 +201,19 @@ export function SidePanel({ state, onClose }: { state: PanelState; onClose: () =
               <div className="space-y-4">
                 <Markdown source={state.report} />
               </div>
+            )}
+
+            {state.kind === "graph" && (
+              <div className="h-[600px] w-full">
+                <KnowledgeGraphCanvas citations={state.citations} />
+              </div>
+            )}
+
+            {state.kind === "chunks" && (
+              <DocumentChunkInspector
+                documentName={state.documentName}
+                chunks={state.chunks}
+              />
             )}
           </div>
         </div>

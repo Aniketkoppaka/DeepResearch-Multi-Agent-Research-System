@@ -1,18 +1,32 @@
 import React, { useState } from "react";
-import { CheckCircle2, ClipboardList, PencilLine, Send, Check } from "lucide-react";
+import { CheckCircle2, ClipboardList, PencilLine, Send, Check, Search, Plus, X } from "lucide-react";
 
 import type { Plan } from "@/lib/research-data";
 
 type Props = {
   plan: Plan;
   decided: "approved" | "refine" | null;
-  onApprove: () => void;
+  onApprove: (approvedQueries?: string[]) => void;
   onRefine: (feedback: string) => void;
 };
 
 export function PlanReviewCard({ plan, decided, onApprove, onRefine }: Props) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [queries, setQueries] = useState<string[]>(plan.queries || []);
+  const [newQuery, setNewQuery] = useState("");
+  const [showAddQuery, setShowAddQuery] = useState(false);
+
+  const handleAddQuery = () => {
+    if (!newQuery.trim()) return;
+    setQueries((q) => [...q, newQuery.trim()]);
+    setNewQuery("");
+    setShowAddQuery(false);
+  };
+
+  const handleRemoveQuery = (index: number) => {
+    setQueries((q) => q.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="surface-panel glow-ring p-5 bg-[#212121] border border-white/10 rounded-2xl shadow-xl">
@@ -37,6 +51,72 @@ export function PlanReviewCard({ plan, decided, onApprove, onRefine }: Props) {
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Human-in-the-Loop Search Query Interceptor */}
+      <div className="mt-4 bg-neutral-900/60 p-3 rounded-xl border border-white/5">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-300 flex items-center gap-1.5">
+            <Search className="size-3.5 text-emerald-400" />
+            Targeted Search Queries (Intercept &amp; Refine)
+          </p>
+          {decided !== "approved" && !showAddQuery && (
+            <button
+              onClick={() => setShowAddQuery(true)}
+              className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-medium cursor-pointer"
+            >
+              <Plus className="size-3" />
+              <span>Add Query</span>
+            </button>
+          )}
+        </div>
+
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {queries.map((qry, idx) => (
+            <span
+              key={`${qry}-${idx}`}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-neutral-800 px-2.5 py-1 text-xs text-neutral-200 border border-white/10"
+            >
+              <span className="font-mono text-[10px] text-neutral-500">#{idx + 1}</span>
+              <span>{qry}</span>
+              {decided !== "approved" && (
+                <button
+                  aria-label={`Remove query: ${qry}`}
+                  onClick={() => handleRemoveQuery(idx)}
+                  className="text-neutral-400 hover:text-red-400 ml-0.5 cursor-pointer"
+                  title="Remove query"
+                >
+                  <X className="size-3" />
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+
+        {showAddQuery && (
+          <div className="mt-2.5 flex gap-2">
+            <input
+              type="text"
+              value={newQuery}
+              onChange={(e) => setNewQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddQuery()}
+              placeholder="e.g. NIST PQC ML-KEM migration timeline"
+              className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white outline-none focus:border-emerald-500"
+            />
+            <button
+              onClick={handleAddQuery}
+              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium cursor-pointer"
+            >
+              Add
+            </button>
+            <button
+              onClick={() => setShowAddQuery(false)}
+              className="px-2 py-1 text-neutral-400 hover:text-white text-xs cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="mt-4">
@@ -67,13 +147,13 @@ export function PlanReviewCard({ plan, decided, onApprove, onRefine }: Props) {
         {decided === "approved" ? (
           <div className="flex items-center gap-2 text-xs font-medium text-emerald-400">
             <CheckCircle2 className="size-4" />
-            <span>Plan approved — Autonomous multi-agent execution in progress</span>
+            <span>Plan &amp; {queries.length} search queries approved — Multi-agent execution in progress</span>
           </div>
         ) : (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={onApprove}
+                onClick={() => onApprove(queries)}
                 className="flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 cursor-pointer"
               >
                 <Check className="size-3.5" />

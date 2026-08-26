@@ -35,6 +35,7 @@ export type Citation = {
 export type Plan = {
   objective: string;
   questions: string[];
+  queries: string[];
   hypotheses: { text: string; confidence: number }[];
 };
 
@@ -94,6 +95,11 @@ export const PLAN: Plan = {
     "How does dual-LLM verification impact reasoning latency and cost?",
     "What empirical evidence demonstrates improved safety alignment?",
   ],
+  queries: [
+    "multi-agent prompt injection defense benchmarks 2025",
+    "dual verification latency cost trade-offs arxiv",
+    "autonomous agent human in the loop safety frameworks",
+  ],
   hypotheses: [
     { text: "Multi-agent dual verification reduces prompt injection vulnerability by >80%.", confidence: 92 },
     { text: "Dynamic query decomposition improves precision in domain-specific technical queries.", confidence: 88 },
@@ -119,6 +125,58 @@ Recent empirical breakthroughs demonstrate that multi-agent collaborative networ
 - [2] IEEE Transactions on AI Safety & Security (2025)
 - [3] DeepResearch Relational Knowledge Graph Verification Engine (2026)
 `;
+
+export const REPORT_TEMPLATES: Record<"academic" | "executive" | "technical", { label: string; markdown: string }> = {
+  academic: {
+    label: "Academic Review",
+    markdown: REPORT,
+  },
+  executive: {
+    label: "Executive Brief",
+    markdown: `# Executive Brief: Autonomous Multi-Agent Systems & Security
+
+### High-Level Impact & Takeaways
+- **Performance Gain:** Collaborative multi-agent architectures achieve **+28.4% reasoning consistency** over traditional prompt engineering [1].
+- **Critical Risk:** Expanding autonomous tool access exposes critical systems to indirect prompt injection threats [2].
+- **Verified Grounding:** Dual-agent knowledge-graph verification achieves **96.2% claim faithfulness** [3].
+
+### Strategic Next Steps
+1. **Enforce Approval Gates:** Require explicit human authorization for external actions and database updates.
+2. **Standardize Hybrid Indexing:** Adopt hybrid BM25 + Qdrant vector retrieval for enterprise evidence grounding.
+
+### Cited Sources
+- [1] Nature Intelligence (2025)
+- [2] IEEE Transactions on AI Safety (2025)
+- [3] DeepResearch Verification Engine (2026)
+`,
+  },
+  technical: {
+    label: "Technical Architecture",
+    markdown: `# Technical Architecture Specification: Multi-Agent Grounding Engine
+
+### 1. System Topology & Flow
+\`\`\`text
+[User Prompt] -> [Supervisor/Planner] -> [Hybrid Qdrant RAG + Web]
+                                              |
+                                     [Fact Extractor (EKG)]
+                                              |
+                                     [Synthesizer + RAGAS]
+\`\`\`
+
+### 2. Verified Components & Benchmarks
+- **Supervisor-Worker State Machine:** +28.4% benchmark gain on technical queries [1].
+- **Prompt Injection Defense Layer:** Isolated tool execution prevents indirect prompt tampering [2].
+- **Evidence Knowledge Graph (EKG):** 96.2% verified claim citation fidelity [3].
+
+### 3. Implementation Requirements
+- **Vector Store:** Qdrant with Reciprocal Rank Fusion ($k=60$).
+- **LLM Gateway:** Resilient LiteLLM gateway with automated multi-provider failover.
+
+### References
+- [1] Nature Intelligence (2025) · [2] IEEE AI Security (2025) · [3] DeepResearch Engine (2026)
+`,
+  },
+};
 
 export const CITATIONS: Citation[] = [
   {
