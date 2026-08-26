@@ -8,10 +8,8 @@ import argparse
 import asyncio
 import logging
 import sys
-import uuid
 
 from app.core.security import get_password_hash
-from app.db.models.user import User
 from app.db.session import AsyncSessionLocal
 from app.repositories.user_repository import UserRepository
 
