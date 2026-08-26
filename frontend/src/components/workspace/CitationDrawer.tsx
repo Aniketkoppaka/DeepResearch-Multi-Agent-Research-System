@@ -81,7 +81,7 @@ export function CitationDrawer({ citation, onClose }: CitationDrawerProps) {
           <div>
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Supporting Passage</span>
             <blockquote className="mt-1.5 p-3 bg-gray-950/80 border-l-2 border-blue-500 rounded-r text-xs text-gray-300 italic leading-relaxed">
-              "{citation.quote_snippet}"
+              &ldquo;{citation.quote_snippet}&rdquo;
             </blockquote>
           </div>
         )}

@@ -4,6 +4,7 @@ import {
   BadgeCheck,
   BarChart3,
   ExternalLink,
+  Layers,
   Quote,
   X,
 } from "lucide-react";
@@ -120,7 +121,7 @@ export function SidePanel({ state, onClose }: { state: PanelState; onClose: () =
                     Exact Quote Passage
                   </p>
                   <blockquote className="mt-2 rounded-xl border-l-2 border-emerald-500 bg-[#212121] p-3 text-xs italic leading-relaxed text-neutral-300">
-                    "{state.citation.quote}"
+                    &ldquo;{state.citation.quote}&rdquo;
                   </blockquote>
                 </div>
 

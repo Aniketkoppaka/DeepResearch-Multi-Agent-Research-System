@@ -608,7 +608,7 @@ export default function DashboardPage() {
             <div className="mt-4 pt-3 border-t border-white/10 text-center text-xs text-neutral-400">
               {authMode === "login" ? (
                 <p>
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <button
                     onClick={() => {
                       setAuthMode("register");

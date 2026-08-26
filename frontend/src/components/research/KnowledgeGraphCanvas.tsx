@@ -364,7 +364,7 @@ export function KnowledgeGraphCanvas({ citations, onSelectCitation }: Props) {
 
             {selectedNode.quote && (
               <blockquote className="mt-1.5 p-2 bg-black/40 rounded-lg text-[11px] text-neutral-300 italic border-l-2 border-emerald-500">
-                "{selectedNode.quote}"
+                &ldquo;{selectedNode.quote}&rdquo;
               </blockquote>
             )}
 
