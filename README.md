@@ -15,36 +15,22 @@
 
 ```mermaid
 flowchart TD
-    User(["User Prompt & Attached Documents"]) --> Supervisor["1. Supervisor / Planner Agent"]
+    User["User Prompt &amp; Document Ingestion"]
     
-    subgraph Planning & HITL
-        Supervisor --> PlanDecomp["Decompose Objective into Hypotheses & RQs"]
-        PlanDecomp --> HITL{"Human-in-the-Loop Interceptor"}
-        HITL -->|Refine / Add Queries| PlanDecomp
-        HITL -->|Approved| ExecLoop["Execution Loop"]
-    end
-
-    subgraph Dual-Stream Retrieval
-        ExecLoop --> SearchAgent["2. Search & Retrieval Agent"]
-        SearchAgent --> Qdrant["Qdrant Hybrid Vector Store<br/>Dense Embeddings + Sparse BM25"]
-        SearchAgent --> WebEngine["Live Web Literature Scanner<br/>arXiv, DuckDuckGo, Academic APIs"]
-        Qdrant & WebEngine --> RRF["Reciprocal Rank Fusion RRF k=60"]
-    end
-
-    subgraph Evidence Verification & EKG
-        RRF --> FactExtractor["3. Fact Extractor & Graph Builder"]
-        FactExtractor --> CredibilityScorer["Source Credibility Engine C(S)"]
-        CredibilityScorer --> EKG[("Evidence Knowledge Graph<br/>Propositions, Sources, Edges")]
-    end
-
-    subgraph Synthesis & Evaluation
-        EKG --> Synthesizer["4. Synthesizer Agent"]
-        Synthesizer --> ReportDraft["Markdown / Exec Brief / Tech Spec"]
-        ReportDraft --> RagasEval["5. RAGAS Grounding Evaluator"]
-        RagasEval --> QualityMetrics["Faithfulness, Relevancy, Cost/Token Telemetry"]
-    end
-
-    QualityMetrics --> UI["Interactive Dashboard, EKG Canvas, Q&A Chat"]
+    User --> Supervisor["1. Supervisor / Planner Agent<br/>(Objective Decomposition &amp; Hypotheses)"]
+    
+    Supervisor --> HITL{"Human-in-the-Loop Gate<br/>(Review, Add/Remove Queries)"}
+    
+    HITL -->|Approved Plan| SearchAgent["2. Search &amp; Retrieval Agent<br/>(Hybrid Qdrant Dense + Sparse BM25 + Web)"]
+    HITL -->|Refine Direction| Supervisor
+    
+    SearchAgent --> FactExtractor["3. Fact Extractor &amp; EKG Engine<br/>(Claims, Relational Edges, Contradictions)"]
+    
+    FactExtractor --> Synthesizer["4. Synthesizer Agent<br/>(Citation-Grounded Report Generation)"]
+    
+    Synthesizer --> RagasEval["5. RAGAS Grounding Evaluator<br/>(Faithfulness, Relevancy, Telemetry)"]
+    
+    RagasEval --> UI["Interactive Dashboard<br/>(EKG Canvas, Post-Research Q&amp;A, Exports)"]
 ```
 
 ---

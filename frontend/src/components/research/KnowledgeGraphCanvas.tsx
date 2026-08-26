@@ -349,7 +349,9 @@ export function KnowledgeGraphCanvas({ citations, onSelectCitation }: Props) {
                   {selectedNode.type === "source" ? "Evidence Source" : `Claim: ${selectedNode.claimType}`}
                 </span>
                 {selectedNode.verified && (
-                  <BadgeCheck className="size-3 text-emerald-400" title="Verified source" />
+                  <span title="Verified source" className="inline-flex items-center">
+                    <BadgeCheck className="size-3 text-emerald-400" />
+                  </span>
                 )}
               </div>
               <button

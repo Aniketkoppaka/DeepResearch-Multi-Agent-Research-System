@@ -56,7 +56,7 @@ export const researchApi = {
       report: REPORT,
       citations: CITATIONS,
     }),
-  exportUrl: (id: string, format: "markdown" | "html") =>
-    `${BASE}/workspaces/${id}/reports/export?format=${format}`,
+  exportUrl: (id: string, format: "markdown" | "html" | "pdf") =>
+    `/api/v1/workspaces/${id}/export?format=${format}`,
   metrics: (id: string) => request<Metrics>(`/workspaces/${id}/metrics`, { method: "GET" }, METRICS),
 };
